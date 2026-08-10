@@ -84,7 +84,7 @@
   .ginputs input::placeholder{color:#98A0AB;font-size:14px;font-weight:500}
   .ginputs input:focus{border-color:var(--ink)}
   .ginputs .unit::after{content:attr(data-u);position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--faint);pointer-events:none;font-weight:600}
-  .gdone{width:100%;margin-top:13px;background:var(--ink);border:none;border-radius:13px;padding:16px;font-family:var(--disp);font-weight:700;font-size:16px;color:#fff}
+  .gdone{width:100%;margin-top:14px;background:var(--ink);border:none;border-radius:16px;padding:22px;font-family:var(--disp);font-weight:800;font-size:21px;letter-spacing:.03em;color:#fff;min-height:68px;box-shadow:0 4px 14px rgba(16,27,45,.22)}
   .gdone:disabled{opacity:.35}
   .gsklinks{display:flex;justify-content:space-between;margin-top:12px}
   .glink{background:none;border:none;color:var(--faint);font-size:13px;font-weight:500;padding:6px 2px}
@@ -100,7 +100,7 @@
   .grestnext b{color:var(--ink)}
   .grestbtns{display:flex;gap:10px;justify-content:center}
   .grbtn{background:rgba(255,255,255,.55);border:none;border-radius:11px;padding:13px 18px;font-size:14.5px;font-weight:600;color:var(--ink)}
-  .grbtn.main{background:var(--ink);color:#fff;font-family:var(--disp);font-weight:700}
+  .grbtn.main{background:var(--ink);color:#fff;font-family:var(--disp);font-weight:800;font-size:16.5px;padding:16px 20px!important;min-height:56px}
 
   .sumhead{font-family:var(--disp);font-weight:800;font-size:23px;margin-bottom:8px}
   .sumrow{display:flex;justify-content:space-between;padding:11px 2px;border-bottom:1px solid var(--line);font-size:14.5px}
@@ -344,6 +344,8 @@
   .warmnext{font-size:13px;color:var(--muted);margin-bottom:14px}
   .warmnext b{color:var(--ink)}
   .warmskip{width:100%;background:none;border:none;color:var(--faint);font-weight:500;font-size:12.5px;padding:8px 0 2px;text-decoration:underline;text-underline-offset:3px;min-height:36px}
+
+  .restprev{margin-top:11px;font-size:12.5px;color:#3D4410;line-height:1.5}
 
   .toast{position:fixed;left:50%;bottom:calc(98px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#fff;font-weight:600;font-size:13.5px;padding:11px 18px;border-radius:11px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:40}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(-6px)}
@@ -761,6 +763,28 @@ function gElapsedMin(){try{return Math.max(0,Math.round((Date.now()-new Date(G.s
 function gTotalSets(){var t=0;PROG[G.type].ex.forEach(function(x){t+=x.sets});return t}
 function gDoneSets(){var t=0;for(var i=0;i<G.exIdx;i++)t+=PROG[G.type].ex[i].sets;return t+G.setIdx}
 function stopWTimer(){if(wTimer.int){clearInterval(wTimer.int);wTimer.int=null}}
+function renderWarmupBreather(nextIdxOrDone){
+  var root=$("#guidedRoot");
+  root.innerHTML='<div class="gtop"><button class="ghome" id="wbHome">\u2039 Dashboard</button><span class="gstat">Wechsel</span></div>'+
+    '<div class="gwrap"><div class="grest">'+
+    '<div class="grestlbl">Kurz wechseln</div>'+
+    '<div class="warmclock" id="wClock" style="font-size:52px">3s</div>'+
+    '<div class="grestbtns"><button class="grbtn main" id="wbSkip">Weiter &rarr;</button></div>'+
+    '</div></div>';
+  wTimer.left=3;stopWTimer();
+  var finish=function(){
+    stopWTimer();
+    if(nextIdxOrDone==="done"){G.warmupDone=true;gSave();renderGuided();}
+    else{G.warmupIdx=nextIdxOrDone;gSave();renderWarmup();}
+  };
+  wAdvanceFn=finish;
+  wTimer.int=setInterval(function(){
+    wTimer.left--;var el=$("#wClock");if(el)el.textContent=Math.max(0,wTimer.left)+"s";
+    if(wTimer.left<=0)finish();
+  },1000);
+  $("#wbSkip").onclick=finish;
+  $("#wbHome").onclick=function(){stopWTimer();gSave();renderHome();toast("Einheit pausiert")};
+}
 function renderWarmup(){
   $("#trainHome").style.display="none";$("#freeRoot").style.display="none";
   var root=$("#guidedRoot");root.style.display="";$("#timerbar").classList.remove("show");
@@ -778,9 +802,9 @@ function renderWarmup(){
   wTimer.left=item.s;stopWTimer();
   var advance=function(){
     stopWTimer();
-    if(i+1<list.length){G.warmupIdx=i+1;gSave();renderWarmup();}
-    else{G.warmupDone=true;gSave();renderGuided();}
+    renderWarmupBreather(i+1<list.length?(i+1):"done");
   };
+  wAdvanceFn=advance;
   wTimer.int=setInterval(function(){
     wTimer.left--;var el=$("#wClock");if(el)el.textContent=Math.max(0,wTimer.left)+"s";
     if(wTimer.left<=0){beep();advance();}
@@ -807,7 +831,7 @@ function renderGuided(){
     '<div class="gtarget">'+suggestTarget(x,prev)+'</div>'+
     '<div class="gsetlbl">Satz <b>'+(G.setIdx+1)+'</b> von '+x.sets+(prev&&prev.sets[G.setIdx]?' <span class="lm">\u00b7 letztes Mal '+fmtSet(x,prev.sets[G.setIdx])+'</span>':'')+'</div>'+
     '<div class="ginputs" id="gin"></div>'+
-    '<button class="gdone" id="gDone" disabled>Satz abschlie\u00dfen</button>'+
+    '<button class="gdone" id="gDone" disabled>FERTIG</button>'+
     '<div class="gsklinks"><button class="glink" id="gUndoBtn">\u2039 Satz zur\u00fcck</button><button class="glink" id="gSkipEx">\u00dcberspringen &rarr;</button><button class="glink" id="gAbort">Abbrechen</button></div>'+
     (histParts.length?'<div class="ghist">Heute: <b>'+histParts.join("  ")+'</b></div>':'')+
   '</div>';
@@ -896,12 +920,20 @@ function showRest(sec,advanceEx){
   var x=gEx();var nextLbl;
   if(advanceEx){var nx=PROG[G.type].ex[G.exIdx+1];nextLbl="N\u00e4chste \u00dcbung: <b>"+nx.name+"</b>";}
   else nextLbl="Als N\u00e4chstes: <b>Satz "+(G.setIdx+2)+" von "+x.sets+"</b> \u2013 "+x.name;
+  /* Vorschau: was danach noch kommt, zum mentalen/koerperlichen Vorbereiten */
+  var previewStart=advanceEx?(G.exIdx+2):(G.exIdx+1);
+  var upcoming=PROG[G.type].ex.slice(previewStart,previewStart+2);
+  var previewHtml="";
+  if(upcoming.length){
+    previewHtml='<div class="restprev">Danach: '+upcoming.map(function(u){return u.name+" ("+u.sets+"\u00d7"+repsLbl(u)+(u.time?"s":"")+")"}).join(" &middot; ")+'</div>';
+  }
   var root=$("#guidedRoot");
   root.innerHTML='<div class="gtop"><button class="ghome" id="grHome">\u2039 Dashboard</button><span class="gstat">'+gElapsedMin()+' Min</span></div>'+
     '<div class="gwrap restcard"><div class="grest">'+
     '<div class="grestlbl">Satzpause</div>'+
     '<div class="grestclock" id="grClock">'+fmtRest(sec)+'</div>'+
     '<div class="grestnext">'+nextLbl+'</div>'+
+    previewHtml+
     '<div class="grestbtns"><button class="grbtn" id="grPlus">+30 s</button><button class="grbtn main" id="grSkip">Weiter &rarr;</button></div>'+
   '</div></div>';
   gTimer.left=sec;gTimer.run=true;
@@ -911,9 +943,12 @@ function showRest(sec,advanceEx){
     if(advanceEx){G.exIdx++;G.setIdx=0}else{G.setIdx++}
     gSave();renderGuided();
   };
+  gAdvanceFn=advance;
   gTimer.int=setInterval(function(){
     gTimer.left--;
     var el=$("#grClock");if(el)el.textContent=fmtRest(Math.max(0,gTimer.left));
+    if(gTimer.left===10)beepWarn();
+    else if(gTimer.left>0&&gTimer.left<=5)beepTick();
     if(gTimer.left<=0){beep();if(navigator.vibrate)navigator.vibrate([200,80,200]);advance();}
   },1000);
   $("#grPlus").onclick=function(){gTimer.left+=30;var el=$("#grClock");if(el)el.textContent=fmtRest(gTimer.left)};
@@ -1268,8 +1303,36 @@ function paint(){$("#tToggle").textContent=tRun?"Pause":"Start";$("#timer").clas
 function stopInt(){if(tInt){clearInterval(tInt);tInt=null}}
 function tSet(sec){tDur=sec;tLeft=sec;tRun=false;stopInt();tShow();paint()}
 function beep(){try{var a=new (window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=880;g.gain.setValueAtTime(.001,a.currentTime);g.gain.exponentialRampToValueAtTime(.4,a.currentTime+.02);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.5);o.start();o.stop(a.currentTime+.5)}catch(e){}}
+function beepWarn(){try{var a=new (window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=660;g.gain.setValueAtTime(.001,a.currentTime);g.gain.exponentialRampToValueAtTime(.3,a.currentTime+.02);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.3);o.start();o.stop(a.currentTime+.3)}catch(e){}}
+function beepTick(){try{var a=new (window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=1050;g.gain.setValueAtTime(.001,a.currentTime);g.gain.exponentialRampToValueAtTime(.22,a.currentTime+.015);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.15);o.start();o.stop(a.currentTime+.15)}catch(e){}}
+var bgHiddenAt=null,gAdvanceFn=null,wAdvanceFn=null;
+document.addEventListener("visibilitychange",function(){
+  if(document.hidden){bgHiddenAt=Date.now();return}
+  if(!bgHiddenAt)return;
+  var elapsed=Math.round((Date.now()-bgHiddenAt)/1000);bgHiddenAt=null;
+  if(elapsed<=0)return;
+  if(gTimer.run){
+    gTimer.left-=elapsed;
+    if(gTimer.left<=0){if(gAdvanceFn)gAdvanceFn();}
+    else{var el=$("#grClock");if(el)el.textContent=fmtRest(gTimer.left)}
+  }
+  if(wTimer.int){
+    wTimer.left-=elapsed;
+    if(wTimer.left<=0){if(wAdvanceFn)wAdvanceFn();}
+    else{var wel=$("#wClock");if(wel)wel.textContent=Math.max(0,wTimer.left)+"s"}
+  }
+  if(tRun){
+    tLeft-=elapsed;
+    if(tLeft<=0){tComplete();}
+    else{tShow();}
+  }
+});
+function tComplete(){stopInt();tRun=false;paint();beep();if(navigator.vibrate)navigator.vibrate([200,80,200]);toast("Pause vorbei");tLeft=tDur;setTimeout(tShow,900)}
 $("#tToggle").onclick=function(){if(tRun){tRun=false;stopInt();paint();return}if(tLeft<=0)tLeft=tDur;tRun=true;paint();
-  tInt=setInterval(function(){tLeft--;tShow();if(tLeft<=0){stopInt();tRun=false;paint();beep();if(navigator.vibrate)navigator.vibrate([200,80,200]);toast("Pause vorbei");tLeft=tDur;setTimeout(tShow,900)}},1000);};
+  tInt=setInterval(function(){tLeft--;tShow();
+    if(tLeft===10)beepWarn();else if(tLeft>0&&tLeft<=5)beepTick();
+    if(tLeft<=0)tComplete();
+  },1000);};
 $("#tPlus").onclick=function(){tLeft+=30;if(tLeft>tDur)tDur=tLeft;tShow()};
 $("#tReset").onclick=function(){tSet(tDur)};
 (function(){var p=$("#presets");PRESETS.forEach(function(sec){var b=document.createElement("button");b.className="preset";b.dataset.s=sec;b.textContent=sec;b.onclick=function(){tSet(sec)};p.appendChild(b)})})();
