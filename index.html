@@ -347,6 +347,21 @@
 
   .restprev{margin-top:11px;font-size:12.5px;color:#3D4410;line-height:1.5}
 
+
+  .foodlogrow{display:flex;justify-content:space-between;align-items:center;padding:10px 2px;border-bottom:1px solid var(--line);font-size:13.5px}
+  .foodlogrow .fn{color:var(--ink);font-weight:600}
+  .foodlogrow .ft{color:var(--faint);font-size:11.5px;font-weight:500;margin-left:7px}
+  .foodlogrow .fg{font-weight:700;color:var(--green);font-variant-numeric:tabular-nums;margin-right:9px}
+  .foodlogrow .fdel{background:none;border:none;color:var(--faint);font-size:17px;padding:2px 4px;min-width:30px;min-height:30px}
+  .foodlogempty{font-size:12.5px;color:var(--faint);padding:2px 2px 10px}
+
+
+  .fl .fs button.setchip{background:none;border:none;color:inherit;font:inherit;font-variant-numeric:tabular-nums;padding:1px 3px;margin:-1px -3px;border-radius:5px;text-decoration:underline;text-decoration-color:transparent;transition:background .12s}
+  .fl .fs button.setchip:active{background:var(--line)}
+
+
+  button.setchip{background:none;border:none;font:inherit;padding:0;margin:0;cursor:pointer;-webkit-appearance:none;appearance:none}
+
   .toast{position:fixed;left:50%;bottom:calc(98px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#fff;font-weight:600;font-size:13.5px;padding:11px 18px;border-radius:11px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:40}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(-6px)}
 </style>
@@ -467,7 +482,9 @@
       <div class="bar"><i id="proBar" style="width:0%"></i></div>
       <div class="avg7" id="proAvg">&Oslash; 7 Tage: &ndash;</div>
     </div>
-    <div class="eyebrow">Mahlzeiten &middot; 1 Tipp = ganze Mahlzeit</div>
+    <div class="eyebrow">Heute protokolliert</div>
+    <div id="foodLog"></div>
+    <div class="eyebrow" style="margin-top:18px">Mahlzeiten &middot; 1 Tipp = ganze Mahlzeit</div>
     <div class="meals" id="meals"></div>
     <div class="mealadd" id="mealAddRow">
       <input id="mealName" type="text" placeholder="Name (z.&nbsp;B. Mittag)">
@@ -506,11 +523,21 @@
 <div class="toast" id="toast"></div>
 <script>
 "use strict";
-var K={bw:"tt_bw",wo:"tt_workouts",nu:"tt_nutrition",cfg:"tt_cfg",meals:"tt_meals",gs:"tt_guided"};
+var K={bw:"tt_bw",wo:"tt_workouts",nu:"tt_nutrition",cfg:"tt_cfg",meals:"tt_meals",gs:"tt_guided",fl:"tt_foodlog"};
 function load(k,def){try{var v=localStorage.getItem(k);return v?JSON.parse(v):def}catch(e){return def}}
 function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){toast("Speichern fehlgeschlagen")}}
 var BW=load(K.bw,[]), WO=load(K.wo,[]), NU=load(K.nu,{}), CFG=load(K.cfg,{proteinTarget:160});
 var MEALS=load(K.meals,[{n:"4 Eier",g:28},{n:"Whey-Shake",g:25},{n:"H\u00e4hnchen + Pasta",g:46},{n:"Quark/Skyr 250g",g:27}]);
+var FOODLOG=load(K.fl,null);
+if(FOODLOG===null){
+  /* Einmalige Migration: alte Tages-Summen (nur Zahl, keine Details) in je einen Sammel-Eintrag umwandeln, damit kein Verlauf verloren geht */
+  FOODLOG=[];
+  Object.keys(NU).forEach(function(d){
+    var p=NU[d]&&NU[d].protein;
+    if(p&&p>0)FOODLOG.push({date:d,ts:d+"T12:00:00",name:"Alteintrag (vor Update)",g:p});
+  });
+  save(K.fl,FOODLOG);
+}
 
 /* bw:true = Koerpergewicht (+kg optional), time:true = Sekunden, sonst Last */
 var PROG={
@@ -604,8 +631,8 @@ function renderReadout(){
       var d=now-p,pct=d/p*100,el=$("#ro-bwd");el.className="delta "+(d>0.05?"up":d<-0.05?"dn":"flat");
       el.textContent=(d>=0?"+":"")+d.toFixed(2)+" kg/Wo \u00b7 "+(pct>=0?"+":"")+pct.toFixed(2)+"%";}}
     else{$("#ro-bwd").className="delta flat";$("#ro-bwd").textContent=(8-BW.length)+" Eintr\u00e4ge bis Trend"}}
-  var n=NU[todayStr()]||{protein:0};$("#ro-pro").innerHTML=(n.protein||0)+'<small> / '+CFG.proteinTarget+' g</small>';
-  var rem=CFG.proteinTarget-(n.protein||0),e=$("#ro-prod");
+  var todayP=dayTotal(todayStr());$("#ro-pro").innerHTML=todayP+'<small> / '+CFG.proteinTarget+' g</small>';
+  var rem=CFG.proteinTarget-todayP,e=$("#ro-prod");
   if(rem<=0){e.className="delta up";e.textContent="Ziel erreicht \u2713"}else{e.className="delta flat";e.textContent="noch "+rem+" g"}
 }
 
@@ -719,18 +746,39 @@ function renderHistory(){
       var up=false;
       if(prevW){var pe=null;prevW.ex.forEach(function(p){if(p.name===e.name)pe=p});
         if(pe){var ct=topSet(e.sets),pt=topSet(pe.sets);up=(ct.w>pt.w||(ct.w===pt.w&&ct.r>pt.r));}}
-      full+='<div class="fl"><span class="fn">'+e.name+'</span><span class="fs'+(up?" up":"")+'">'+e.sets.map(function(s){return fmtSet(x,s)}).join("  ")+(up?" \u2191":"")+'</span></div>';
+      var chips=e.sets.map(function(s,si){return '<button class="setchip" data-en="'+e.name.replace(/"/g,"&quot;")+'" data-si="'+si+'">'+fmtSet(x,s)+'</button>'}).join("  ");
+      full+='<div class="fl"><span class="fn">'+e.name+'</span><span class="fs'+(up?" up":"")+'">'+chips+(up?" \u2191":"")+'</span></div>';
     });
     var d=document.createElement("div");d.className="hist";
     d.innerHTML='<div class="hd"><span class="date">'+fmtDateFull(w.d)+(w.ts?' \u00b7 '+fmtTime(w.ts):'')+' <span class="chev">\u203a</span></span>'+
       '<span style="display:flex;gap:8px;align-items:baseline"><span class="type">'+code+'</span><button class="hdel">\u00d7</button></span></div>'+
       '<div class="sum">'+totalSets+' S\u00e4tze'+(w.dur?' \u00b7 '+w.dur+' Min':'')+' \u00b7 '+parts.join(" \u00b7 ")+'</div>'+
       '<div class="full">'+full+'</div>';
-    d.onclick=function(){d.classList.toggle("open")};
+    d.onclick=function(ev){if(ev.target.classList.contains("setchip"))return;d.classList.toggle("open")};
     d.querySelector(".hdel").onclick=function(ev){
       ev.stopPropagation();
       if(confirm("Einheit vom "+fmtDate(w.d)+" l\u00f6schen?")){WO=WO.filter(function(x){return x!==w});save(K.wo,WO);renderHistory();renderBench();renderGoalRings();renderTodayCard();renderWeightProjection();}
     };
+    d.querySelectorAll(".setchip").forEach(function(chip){
+      chip.onclick=function(ev){
+        ev.stopPropagation();
+        var enam=chip.dataset.en,si=+chip.dataset.si;
+        var ex=w.ex.find(function(e){return e.name===enam});if(!ex)return;
+        var x=xdef[enam]||{},s=ex.sets[si];
+        if(x.time){
+          var nr=window.prompt("Sekunden f\u00fcr \u201e"+enam+"\u201c, Satz "+(si+1)+":",s.r);
+          if(nr===null||nr==="")return;s.r=+nr;
+        }else{
+          var nw=window.prompt((x.bw?"Zusatzgewicht +kg (0 = kein) f\u00fcr ":"kg f\u00fcr ")+"\u201e"+enam+"\u201c, Satz "+(si+1)+":",s.w||0);
+          if(nw===null)return;
+          var nr2=window.prompt("Wiederholungen f\u00fcr \u201e"+enam+"\u201c, Satz "+(si+1)+":",s.r);
+          if(nr2===null||nr2==="")return;
+          s.w=+nw;s.r=+nr2;
+        }
+        save(K.wo,WO);renderHistory();renderBench();renderGoalRings();renderTodayCard();renderWeightProjection();
+        toast("Satz korrigiert \u2713");
+      };
+    });
     c.appendChild(d);
   });
 }
@@ -1188,7 +1236,14 @@ function renderWeight(){
     c.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none"><polyline points="'+raw+'" fill="none" stroke="#333B48" stroke-width="1.5"/><polyline points="'+ma.join(" ")+'" fill="none" stroke="#FF7A2E" stroke-width="2.6" stroke-linejoin="round"/>'+dots+'<text x="'+pad+'" y="13" fill="#9AA2AE" font-family="monospace" font-size="10">'+maxY.toFixed(1)+'</text><text x="'+pad+'" y="'+(H-4)+'" fill="#9AA2AE" font-family="monospace" font-size="10">'+minY.toFixed(1)+'</text></svg>';}
   var log=$("#bwLog");log.innerHTML="";
   BW.slice().reverse().slice(0,12).forEach(function(b){var row=document.createElement("div");row.className="logrow";
-    row.innerHTML='<span class="d">'+fmtDate(b.d)+'</span><span>'+(+b.kg).toFixed(1)+' kg</span>';
+    row.innerHTML='<span class="d">'+fmtDate(b.d)+'</span><span><button class="setchip" style="color:var(--ink);font-weight:700">'+(+b.kg).toFixed(1)+' kg</button></span>';
+    row.querySelector(".setchip").onclick=function(){
+      var nv=window.prompt("Gewicht f\u00fcr "+fmtDate(b.d)+" (kg):",b.kg);
+      if(nv===null||nv==="")return;
+      var v=parseFloat(nv.replace(",","."));
+      if(!v||v<30||v>250){toast("Gewicht pr\u00fcfen");return}
+      b.kg=v;save(K.bw,BW);renderWeight();renderReadout();renderGoalRings();toast("Gewicht korrigiert \u2713");
+    };
     var del=document.createElement("button");del.className="del";del.textContent="\u00d7";
     del.onclick=function(){BW=BW.filter(function(x){return x!==b});save(K.bw,BW);renderWeight();renderReadout()};
     row.appendChild(del);log.appendChild(row);});
@@ -1196,7 +1251,7 @@ function renderWeight(){
 
 /* ---------- Backup / Analyse ---------- */
 $("#exportBtn").onclick=function(){
-  var data={app:"trainingsplan",v:2,exported:new Date().toISOString(),BW:BW,WO:WO,NU:NU,CFG:CFG,MEALS:MEALS};
+  var data={app:"trainingsplan",v:3,exported:new Date().toISOString(),BW:BW,WO:WO,NU:NU,CFG:CFG,MEALS:MEALS,FOODLOG:FOODLOG};
   var blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
   var url=URL.createObjectURL(blob),a=document.createElement("a");
   a.href=url;a.download="trainingsplan-backup-"+todayStr()+".json";
@@ -1209,16 +1264,20 @@ $("#importFile").onchange=function(e){
   r.onload=function(){try{var d=JSON.parse(r.result);
     if(!d||(!d.BW&&!d.WO&&!d.NU)){toast("Keine g\u00fcltige Sicherung");return}
     if(!confirm("Backup laden? Aktuelle Daten werden ersetzt.")){e.target.value="";return}
-    BW=d.BW||[];WO=d.WO||[];NU=d.NU||{};if(d.CFG)CFG=d.CFG;if(d.MEALS)MEALS=d.MEALS;
-    save(K.bw,BW);save(K.wo,WO);save(K.nu,NU);save(K.cfg,CFG);save(K.meals,MEALS);
+    BW=d.BW||[];WO=d.WO||[];NU=d.NU||{};if(d.CFG)CFG=d.CFG;if(d.MEALS)MEALS=d.MEALS;if(d.FOODLOG)FOODLOG=d.FOODLOG;
+    save(K.bw,BW);save(K.wo,WO);save(K.nu,NU);save(K.cfg,CFG);save(K.meals,MEALS);save(K.fl,FOODLOG);
     renderWeight();renderFood();renderReadout();renderHome();
     toast("Backup geladen \u2713");
   }catch(err){toast("Datei nicht lesbar")}e.target.value="";};
   r.readAsText(f);
 };
+function dayTotal(dstr){var t=0;FOODLOG.forEach(function(e){if(e.date===dstr)t+=+e.g});return t}
 function proteinAvg(days){
   var out=[],today=new Date();
-  for(var i=0;i<days;i++){var d=new Date(today);d.setDate(d.getDate()-i);var k=d.toISOString().slice(0,10);if(NU[k]&&NU[k].protein!=null)out.push(NU[k].protein)}
+  for(var i=0;i<days;i++){var d=new Date(today);d.setDate(d.getDate()-i);var k=d.toISOString().slice(0,10);
+    var hasEntry=FOODLOG.some(function(e){return e.date===k});
+    if(hasEntry)out.push(dayTotal(k));
+  }
   if(!out.length)return null;var t=0;for(var j=0;j<out.length;j++)t+=out[j];return{avg:Math.round(t/out.length),days:out.length};
 }
 function buildDigest(){
@@ -1266,18 +1325,43 @@ $("#analyseBtn").onclick=function(){
 
 /* ---------- Ernaehrung ---------- */
 var STAPLES=[{n:"Whey-Shake",g:25},{n:"Ei (1)",g:7},{n:"H\u00e4hnchen 150g",g:35},{n:"Thunfisch Dose",g:25},{n:"Magerquark 250g",g:30},{n:"Skyr 250g",g:25},{n:"Erdn\u00fcsse 50g",g:13},{n:"Nudeln 100g",g:12}];
-function nu(){var t=todayStr();if(!NU[t])NU[t]={protein:0};return NU[t]}
+function logFood(name,g){
+  FOODLOG.push({date:todayStr(),ts:new Date().toISOString(),name:name,g:g});
+  save(K.fl,FOODLOG);renderFood();renderReadout();
+}
+function renderFoodLog(){
+  var c=$("#foodLog");if(!c)return;c.innerHTML="";
+  var today=FOODLOG.filter(function(e){return e.date===todayStr()}).sort(function(a,b){return a.ts<b.ts?-1:1});
+  if(!today.length){c.innerHTML='<div class="foodlogempty">Noch nichts protokolliert heute.</div>';return}
+  today.forEach(function(e){
+    var row=document.createElement("div");row.className="foodlogrow";
+    var time="";try{time=new Date(e.ts).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})}catch(err){}
+    row.innerHTML='<span><span class="fn">'+e.name+'</span><span class="ft">'+time+'</span></span><span><button class="fg setchip">+'+e.g+' g</button></span>';
+    row.querySelector(".setchip").onclick=function(){
+      var nv=window.prompt("Gramm Protein f\u00fcr \u201e"+e.name+"\u201c:",e.g);
+      if(nv===null||nv==="")return;
+      var v=parseInt(nv);if(!v)return;
+      e.g=v;save(K.fl,FOODLOG);renderFood();renderReadout();toast("Menge korrigiert \u2713");
+    };
+    var del=document.createElement("button");del.className="fdel";del.textContent="\u00d7";
+    del.onclick=function(){FOODLOG=FOODLOG.filter(function(x){return x!==e});save(K.fl,FOODLOG);renderFood();renderReadout();toast("Eintrag entfernt")};
+    row.querySelector("span:last-child").appendChild(del);
+    c.appendChild(row);
+  });
+}
 function renderFood(){
-  var n=nu();$("#proBig").innerHTML=(n.protein||0)+'<small> / '+CFG.proteinTarget+' g</small>';
-  var pct=Math.min(100,(n.protein||0)/CFG.proteinTarget*100),bar=$("#proBar");bar.style.width=pct+"%";bar.className=pct>=100?"done":"";
+  var todayP=dayTotal(todayStr());
+  $("#proBig").innerHTML=todayP+'<small> / '+CFG.proteinTarget+' g</small>';
+  var pct=Math.min(100,todayP/CFG.proteinTarget*100),bar=$("#proBar");bar.style.width=pct+"%";bar.className=pct>=100?"done":"";
   var a=proteinAvg(7),av=$("#proAvg");
   if(a){av.innerHTML="&Oslash; 7 Tage: <b>"+a.avg+" g</b> (aus "+a.days+" Tagen)";av.className="avg7"+(a.avg>=CFG.proteinTarget-15?" ok":"")}
   else{av.className="avg7";av.innerHTML="&Oslash; 7 Tage: &ndash;"}
+  renderFoodLog();
   var m=$("#meals");m.innerHTML="";
   MEALS.forEach(function(meal,idx){
     var b=document.createElement("button");b.className="meal";
     b.innerHTML='<button class="mx">&times;</button><div class="mn">'+meal.n+'</div><div class="mg">+'+meal.g+' g</div>';
-    b.onclick=function(){nu().protein=(nu().protein||0)+meal.g;save(K.nu,NU);renderFood();renderReadout();toast("+"+meal.g+" g")};
+    b.onclick=function(){logFood(meal.n,meal.g);toast("+"+meal.g+" g")};
     b.querySelector(".mx").onclick=function(ev){ev.stopPropagation();if(confirm("Mahlzeit \u201e"+meal.n+"\u201c l\u00f6schen?")){MEALS.splice(idx,1);save(K.meals,MEALS);renderFood()}};
     m.appendChild(b);
   });
@@ -1285,16 +1369,16 @@ function renderFood(){
   var q=$("#quick");q.innerHTML="";
   STAPLES.forEach(function(s){var b=document.createElement("button");b.className="q";
     b.innerHTML='<div class="qn">'+s.n+'</div><div class="qg">+'+s.g+' g Protein</div>';
-    b.onclick=function(){nu().protein=(nu().protein||0)+s.g;save(K.nu,NU);renderFood();renderReadout()};q.appendChild(b);});
+    b.onclick=function(){logFood(s.n,s.g)};q.appendChild(b);});
 }
 $("#mealSave").onclick=function(){
   var name=$("#mealName").value.trim(),g=parseInt($("#mealG").value);
   if(!name||!g){toast("Name und g angeben");return}
   MEALS.push({n:name,g:g});save(K.meals,MEALS);$("#mealName").value="";$("#mealG").value="";renderFood();toast("Mahlzeit gesichert \u2713");
 };
-$("#portionBtn").onclick=function(){nu().protein=(nu().protein||0)+30;save(K.nu,NU);renderFood();renderReadout();toast("+30 g")};
-$("#proCustomAdd").onclick=function(){var v=parseInt($("#proCustom").value);if(!v)return;nu().protein=(nu().protein||0)+v;save(K.nu,NU);$("#proCustom").value="";renderFood();renderReadout()};
-$("#resetDay").onclick=function(){if(confirm("Protein von heute zur\u00fccksetzen?")){NU[todayStr()]={protein:0};save(K.nu,NU);renderFood();renderReadout()}};
+$("#portionBtn").onclick=function(){logFood("Portion (grob)",30);toast("+30 g")};
+$("#proCustomAdd").onclick=function(){var v=parseInt($("#proCustom").value);if(!v)return;logFood("Manuell",v);$("#proCustom").value=""};
+$("#resetDay").onclick=function(){if(confirm("Alle heutigen Eintr\u00e4ge l\u00f6schen?")){FOODLOG=FOODLOG.filter(function(e){return e.date!==todayStr()});save(K.fl,FOODLOG);renderFood();renderReadout()}};
 
 /* ---------- Freier Timer ---------- */
 var PRESETS=[60,90,120,150,180],tDur=90,tLeft=90,tRun=false,tInt=null;
