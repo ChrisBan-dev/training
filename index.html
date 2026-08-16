@@ -491,6 +491,7 @@
       <input id="mealG" type="number" inputmode="numeric" placeholder="g">
       <button id="mealSave">Sichern</button>
     </div>
+    <button class="portion" id="mealSuggest">+ Neue Vorschl&auml;ge laden (Pizza, Eier, Thunfisch, Shake)</button>
     <div class="eyebrow" style="margin-top:18px">Schnell &amp; grob</div>
     <div class="quick" id="quick"></div>
     <button class="portion" id="portionBtn">+ 1 Portion Protein (~30 g)</button>
@@ -544,11 +545,11 @@ var PROG={
   DR:{code:"Dr\u00fccken",label:"Brust / Schulter",
     focus:"<b>Bankdr\u00fccken ist jetzt dein Haupt-Driver</b> \u2013 mit Bank &amp; Langhantel der wirksamste Hebel f\u00fcr Brustmasse. Ring Dips bleiben als Zweitreiz. Nach 3 Wochen Pause: erster Satz bewusst 1\u20132 Wdh unter Maximum ansetzen, Technik vor Ego.",
     ex:[
-      {name:"Bankdr\u00fccken",sets:4,reps:[5,8],rir:"1\u20132",rest:180,cue:"Neuer Haupt-Driver f\u00fcr Brustmasse. Schulterbl\u00e4tter zusammen, F\u00fc\u00dfe fest, Stange zur unteren Brust. Erste Einheit nach Pause: konservativ starten."},
+      {name:"Bankdr\u00fccken",sets:4,reps:[5,8],rir:"1\u20132",rest:150,cue:"Neuer Haupt-Driver f\u00fcr Brustmasse. Schulterbl\u00e4tter zusammen, F\u00fc\u00dfe fest, Stange zur unteren Brust. Erste Einheit nach Pause: konservativ starten."},
       {name:"Ring Dips",bw:true,sets:3,reps:[8,12],rir:"1\u20132",rest:120,cue:"Zweitreiz Brust/Trizeps. Zusatzgewicht per G\u00fcrtel ins +kg-Feld, sobald 3\u00d712 sauber."},
-      {name:"Seitheben",sets:4,reps:[12,20],rir:"0\u20131",rest:75,cue:"Schulterbreite. Ellbogen f\u00fchrt, kein Schwung."},
+      {name:"Seitheben",sets:4,reps:[12,20],rir:"0\u20131",rest:75,cue:"Schulterbreite. Ellbogen f\u00fchrt, kein Schwung. Bei 20 Wdh im Deckel: langsamer (3s runter) oder 2s oben halten, bis schwerere Hanteln da sind."},
       {name:"\u00dcberkopfdr\u00fccken / Z-Press",sets:3,reps:[6,10],rir:"1\u20132",rest:150,cue:"Rumpf fest, kein Hohlkreuz. Stetig laden."},
-      {name:"Ring Triceps Extension",bw:true,sets:3,reps:[8,12],rir:"1",rest:90,cue:"Ellbogen eng, volle Streckung. Schwerer = F\u00fc\u00dfe weiter vor."}
+      {name:"Ring Triceps Extension",bw:true,sets:2,reps:[8,12],rir:"1",rest:90,cue:"Ellbogen eng, volle Streckung. Schwerer = F\u00fc\u00dfe weiter vor. Bewusst 2 statt 3 S\u00e4tze \u2013 Trizeps wird durch Bankdr\u00fccken/Dips schon mitgetroffen, Zeitbudget geht vor."}
     ]},
   ZI:{code:"Ziehen",label:"R\u00fccken / Bizeps",
     focus:"<b>Breite und Dichte im R\u00fccken</b> plus Haltungsarbeit gegen das Schreibtisch-Becken. Face Pulls nicht \u00fcberspringen.",
@@ -562,7 +563,7 @@ var PROG={
   BE:{code:"Beine",label:"Beine / Core",
     focus:"<b>Progressiv laden.</b> Beine waren unterfordert. Der Sixpack baut am Hanging Leg Raise.",
     ex:[
-      {name:"Front Squat",sets:4,reps:[6,10],rir:"1\u20132",rest:180,cue:"Ellbogen hoch, R\u00fccken gerade. Neue Scheiben nutzen."},
+      {name:"Front Squat",sets:4,reps:[6,10],rir:"1\u20132",rest:150,cue:"Ellbogen hoch, R\u00fccken gerade. Neue Scheiben nutzen."},
       {name:"Rum\u00e4n. Kreuzheben",sets:3,reps:[8,12],rir:"1\u20132",rest:150,cue:"H\u00fcfte zur\u00fcck, Dehnung in den Beinbeugern."},
       {name:"Bulgarian Split Squat",bw:true,sets:3,reps:[8,12],rir:"1",rest:120,cue:"Pro Bein. Mit Kurzhanteln \u2192 kg, sonst nur Wdh."},
       {name:"Wadenheben",bw:true,sets:4,reps:[12,20],rir:"0\u20131",rest:60,cue:"Volle Dehnung, oben halten."},
@@ -572,7 +573,7 @@ var PROG={
     focus:"<b>Zweite Wochendosis f\u00fcr deine Schwachpunkte.</b> Schr\u00e4gbankdr\u00fccken trifft die obere Brust \u2013 dort, wo Bankdr\u00fccken flach weniger erreicht. Wird nie gestrichen; notfalls auf Schr\u00e4gbank + Seitheben k\u00fcrzen.",
     ex:[
       {name:"Schr\u00e4gbankdr\u00fccken",sets:3,reps:[6,10],rir:"1\u20132",rest:150,cue:"Obere Brust. Bank 30\u201345\u00b0, Stange zum oberen Brustbereich."},
-      {name:"Seitheben",sets:4,reps:[12,20],rir:"0\u20131",rest:75,cue:"Zweite schwere Seitheben-Einheit \u2013 hier entsteht Breite."},
+      {name:"Seitheben",sets:4,reps:[12,20],rir:"0\u20131",rest:75,cue:"Zweite schwere Seitheben-Einheit \u2013 hier entsteht Breite. Bei 20 Wdh im Deckel: langsamer oder 2s oben halten, bis schwerere Hanteln da sind."},
       {name:"Ring Fly",bw:true,sets:3,reps:[10,15],rir:"1",rest:90,cue:"Brustdehnung. Ellbogen leicht gebeugt."},
       {name:"Ring High Rows",bw:true,sets:3,reps:[12,15],rir:"1",rest:75,cue:"Oberer R\u00fccken & hintere Schulter."},
       {name:"Hanging Leg Raises",bw:true,sets:3,reps:[8,15],rir:"1",rest:90,cue:"Kontrolliert bis unter die Rippen."}
@@ -800,6 +801,7 @@ var WARMUP={
 };
 var G=null; /* {type, exIdx, setIdx, results:{name:[{w,r}]}, startedAt, warmupDone, warmupIdx} */
 var gTimer={left:0,run:false,int:null};
+var lastAdvanceEx=false;
 var wTimer={left:0,int:null};
 function gSave(){save(K.gs,G)}
 function gClear(){G=null;localStorage.removeItem(K.gs)}
@@ -870,16 +872,16 @@ function renderGuided(){
   for(var i=0;i<total;i++)bars+='<i class="'+(i<done?"done":(i===done?"cur":""))+'"></i>';
   var results=G.results[x.name]||[];
   var histParts=[];results.forEach(function(s,i){histParts.push("S"+(i+1)+": "+fmtSet(x,s))});
-  root.innerHTML='<div class="gtop"><button class="ghome" id="gHome">\u2039 Dashboard</button><button class="goview" id="gOv">Satz '+(done+1)+'/'+total+' \u00b7 '+gElapsedMin()+' Min \u25be</button></div>'+
+  root.innerHTML='<div class="gtop"><button class="ghome" id="gHome">\u2039 Dashboard</button><button class="goview" id="gOv">\u00dcbersicht \u00b7 '+(done+1)+'/'+total+' \u00b7 '+gElapsedMin()+' Min</button></div>'+
     '<div class="gwrap">'+
     '<div class="gprog">'+bars+'</div>'+
     '<div class="gexname">'+x.name+'</div>'+
     '<div class="gmeta"><b>'+x.sets+' S\u00e4tze \u00b7 '+repsLbl(x)+(x.time?" s":" Wdh")+'</b> \u00b7 RIR '+x.rir+' \u00b7 Pause '+fmtRest(x.rest)+'</div>'+
-    '<div class="gcue">'+x.cue+'</div>'+
-    '<div class="gtarget">'+suggestTarget(x,prev)+'</div>'+
     '<div class="gsetlbl">Satz <b>'+(G.setIdx+1)+'</b> von '+x.sets+(prev&&prev.sets[G.setIdx]?' <span class="lm">\u00b7 letztes Mal '+fmtSet(x,prev.sets[G.setIdx])+'</span>':'')+'</div>'+
     '<div class="ginputs" id="gin"></div>'+
     '<button class="gdone" id="gDone" disabled>FERTIG</button>'+
+    '<div class="gtarget">'+suggestTarget(x,prev)+'</div>'+
+    '<div class="gcue">'+x.cue+'</div>'+
     '<div class="gsklinks"><button class="glink" id="gUndoBtn">\u2039 Satz zur\u00fcck</button><button class="glink" id="gSkipEx">\u00dcberspringen &rarr;</button><button class="glink" id="gAbort">Abbrechen</button></div>'+
     (histParts.length?'<div class="ghist">Heute: <b>'+histParts.join("  ")+'</b></div>':'')+
   '</div>';
@@ -887,23 +889,27 @@ function renderGuided(){
   var wIn=null,rIn;
   if(x.time){
     gin.innerHTML='<div class="unit" data-u="Sek"><input id="gR" type="number" inputmode="numeric" placeholder="'+repsLbl(x)+'"></div>';
+    rIn=$("#gR");
+    var ltT=results[results.length-1];var lpT=prev&&prev.sets[G.setIdx];
+    if(ltT&&ltT.r)rIn.value=ltT.r;else if(lpT&&lpT.r)rIn.value=lpT.r;
   }else if(x.bw){
     gin.innerHTML='<div class="unit" data-u="+kg" style="flex:.7"><input id="gW" type="number" inputmode="decimal" step="0.5" placeholder="+kg"></div>'+
       '<div class="unit" data-u="Wdh"><input id="gR" type="number" inputmode="numeric" placeholder="'+repsLbl(x)+'"></div>';
-    wIn=$("#gW");
+    wIn=$("#gW");rIn=$("#gR");
     var lastToday=results[results.length-1];var lastPrev=prev&&prev.sets[G.setIdx];
     if(lastToday&&lastToday.w)wIn.value=lastToday.w;else if(lastPrev&&lastPrev.w)wIn.placeholder="+"+lastPrev.w;
+    if(lastToday&&lastToday.r)rIn.value=lastToday.r;else if(lastPrev&&lastPrev.r)rIn.value=lastPrev.r;
   }else{
     gin.innerHTML='<div class="unit" data-u="kg"><input id="gW" type="number" inputmode="decimal" step="0.5" placeholder="kg"></div>'+
       '<div class="unit" data-u="Wdh"><input id="gR" type="number" inputmode="numeric" placeholder="'+repsLbl(x)+'"></div>';
-    wIn=$("#gW");
+    wIn=$("#gW");rIn=$("#gR");
     var lt=results[results.length-1];var lp=prev&&prev.sets[G.setIdx];
     if(lt&&lt.w)wIn.value=lt.w;else if(lp&&lp.w)wIn.value=lp.w;
+    if(lt&&lt.r)rIn.value=lt.r;else if(lp&&lp.r)rIn.value=lp.r;
   }
-  rIn=$("#gR");
   var check=function(){$("#gDone").disabled=!(rIn.value!=="");};
   rIn.oninput=check;if(wIn)wIn.oninput=check;
-  rIn.focus();
+  check();
   $("#gDone").onclick=function(){
     var entry={w:(wIn&&wIn.value!==""?+wIn.value:0),r:+rIn.value};
     if(!G.results[x.name])G.results[x.name]=[];
@@ -928,6 +934,7 @@ function renderGuided(){
   $("#gUndoBtn").onclick=gUndo;
 }
 function gJump(i){
+  if(gTimer.run){clearInterval(gTimer.int);gTimer.run=false;}
   G.exIdx=i;
   var x=PROG[G.type].ex[i],res=(G.results[x.name]||[]);
   G.setIdx=Math.min(res.length,x.sets-1);
@@ -946,6 +953,7 @@ function gUndo(){
 }
 function gReset(){
   if(!confirm("Einheit neu starten? Alle heutigen Eingaben dieser Einheit gehen verloren."))return;
+  if(gTimer.run){clearInterval(gTimer.int);gTimer.run=false;}
   G={type:G.type,exIdx:0,setIdx:0,results:{},startedAt:new Date().toISOString(),warmupDone:false,warmupIdx:0};
   gSave();renderGuided();toast("Einheit zur\u00fcckgesetzt");
 }
@@ -960,11 +968,12 @@ function renderOverview(){
     '<div class="gwrap"><div class="gexname" style="font-size:22px">\u00dcbersicht \u00b7 antippen zum Springen</div>'+
     '<div class="ovlist">'+list+'</div>'+
     '<button class="ovreset" id="ovReset">Einheit neu starten</button></div>';
-  $("#ovBack").onclick=function(){renderGuided()};
+  $("#ovBack").onclick=function(){if(gTimer.run){showRest(gTimer.left,lastAdvanceEx)}else{renderGuided()}};
   $("#ovReset").onclick=gReset;
   root.querySelectorAll(".ovitem").forEach(function(b){b.onclick=function(){gJump(+b.dataset.i)}});
 }
 function showRest(sec,advanceEx){
+  lastAdvanceEx=advanceEx;
   var x=gEx();var nextLbl;
   if(advanceEx){var nx=PROG[G.type].ex[G.exIdx+1];nextLbl="N\u00e4chste \u00dcbung: <b>"+nx.name+"</b>";}
   else nextLbl="Als N\u00e4chstes: <b>Satz "+(G.setIdx+2)+" von "+x.sets+"</b> \u2013 "+x.name;
@@ -976,7 +985,7 @@ function showRest(sec,advanceEx){
     previewHtml='<div class="restprev">Danach: '+upcoming.map(function(u){return u.name+" ("+u.sets+"\u00d7"+repsLbl(u)+(u.time?"s":"")+")"}).join(" &middot; ")+'</div>';
   }
   var root=$("#guidedRoot");
-  root.innerHTML='<div class="gtop"><button class="ghome" id="grHome">\u2039 Dashboard</button><span class="gstat">'+gElapsedMin()+' Min</span></div>'+
+  root.innerHTML='<div class="gtop"><button class="ghome" id="grHome">\u2039 Dashboard</button><button class="goview" id="grOv">\u00dcbersicht \u00b7 '+gElapsedMin()+' Min</button></div>'+
     '<div class="gwrap restcard"><div class="grest">'+
     '<div class="grestlbl">Satzpause</div>'+
     '<div class="grestclock" id="grClock">'+fmtRest(sec)+'</div>'+
@@ -1001,6 +1010,7 @@ function showRest(sec,advanceEx){
   },1000);
   $("#grPlus").onclick=function(){gTimer.left+=30;var el=$("#grClock");if(el)el.textContent=fmtRest(gTimer.left)};
   $("#grSkip").onclick=advance;
+  $("#grOv").onclick=renderOverview;
   $("#grHome").onclick=function(){clearInterval(gTimer.int);gTimer.run=false;if(advanceEx){G.exIdx++;G.setIdx=0}else{G.setIdx++}gSave();renderHome();toast("Einheit pausiert")};
 }
 function persistGuided(){
@@ -1376,6 +1386,20 @@ $("#mealSave").onclick=function(){
   if(!name||!g){toast("Name und g angeben");return}
   MEALS.push({n:name,g:g});save(K.meals,MEALS);$("#mealName").value="";$("#mealG").value="";renderFood();toast("Mahlzeit gesichert \u2713");
 };
+$("#mealSuggest").onclick=function(){
+  var suggestions=[
+    {n:"Pizza mit Fleisch",g:35},
+    {n:"5 Eier",g:35},
+    {n:"Thunfisch-Nudeln",g:40},
+    {n:"Post-Workout Shake (2 Scoops)",g:50}
+  ];
+  var added=0;
+  suggestions.forEach(function(s){
+    if(!MEALS.some(function(m){return m.n===s.n})){MEALS.push(s);added++;}
+  });
+  if(added){save(K.meals,MEALS);renderFood();toast(added+" neue Presets hinzugef\u00fcgt \u2713");}
+  else toast("Presets sind schon alle da");
+};
 $("#portionBtn").onclick=function(){logFood("Portion (grob)",30);toast("+30 g")};
 $("#proCustomAdd").onclick=function(){var v=parseInt($("#proCustom").value);if(!v)return;logFood("Manuell",v);$("#proCustom").value=""};
 $("#resetDay").onclick=function(){if(confirm("Alle heutigen Eintr\u00e4ge l\u00f6schen?")){FOODLOG=FOODLOG.filter(function(e){return e.date!==todayStr()});save(K.fl,FOODLOG);renderFood();renderReadout()}};
@@ -1386,9 +1410,30 @@ function tShow(){$("#tclock").textContent=fmtRest(Math.max(0,tLeft))}
 function paint(){$("#tToggle").textContent=tRun?"Pause":"Start";$("#timer").classList.toggle("run",tRun);$("#tclock").classList.toggle("run",tRun);document.querySelectorAll(".preset").forEach(function(p){p.classList.toggle("on",+p.dataset.s===tDur)})}
 function stopInt(){if(tInt){clearInterval(tInt);tInt=null}}
 function tSet(sec){tDur=sec;tLeft=sec;tRun=false;stopInt();tShow();paint()}
-function beep(){try{var a=new (window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=880;g.gain.setValueAtTime(.001,a.currentTime);g.gain.exponentialRampToValueAtTime(.4,a.currentTime+.02);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.5);o.start();o.stop(a.currentTime+.5)}catch(e){}}
-function beepWarn(){try{var a=new (window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=660;g.gain.setValueAtTime(.001,a.currentTime);g.gain.exponentialRampToValueAtTime(.3,a.currentTime+.02);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.3);o.start();o.stop(a.currentTime+.3)}catch(e){}}
-function beepTick(){try{var a=new (window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=1050;g.gain.setValueAtTime(.001,a.currentTime);g.gain.exponentialRampToValueAtTime(.22,a.currentTime+.015);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.15);o.start();o.stop(a.currentTime+.15)}catch(e){}}
+var audioCtx=null;
+function unlockAudio(){
+  try{
+    if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==="suspended")audioCtx.resume();
+  }catch(e){}
+}
+document.addEventListener("touchstart",unlockAudio,{passive:true});
+document.addEventListener("pointerdown",unlockAudio,{passive:true});
+function tone(freq,dur,vol){
+  unlockAudio();if(!audioCtx)return;
+  try{
+    var o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.connect(g);g.connect(audioCtx.destination);
+    o.frequency.value=freq;
+    g.gain.setValueAtTime(.001,audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(vol,audioCtx.currentTime+.02);
+    g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+dur);
+    o.start();o.stop(audioCtx.currentTime+dur);
+  }catch(e){}
+}
+function beep(){tone(880,.5,.4)}
+function beepWarn(){tone(660,.3,.3)}
+function beepTick(){tone(1050,.15,.22)}
 var bgHiddenAt=null,gAdvanceFn=null,wAdvanceFn=null;
 document.addEventListener("visibilitychange",function(){
   if(document.hidden){bgHiddenAt=Date.now();return}
